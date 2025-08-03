@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Tic-Tac-Toe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        .cell {
+            transition: all 0.3s ease;
+        }
+        
+        .cell:hover:not(.occupied) {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+        
+        .x-symbol {
+            color: #3B82F6;
+            text-shadow: 0 0 10px rgba(59, 130, 246, 0.7);
+        }
+        
+        .o-symbol {
+            color: #EF4444;
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.7);
+        }
+        
+        .winning-cell {
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="max-w-2xl w-full text-center">
+        <img src="https://placehold.co/600x200" alt="Tic-Tac-Toe title in bold blue and red letters with X and O symbols floating around" class="w-full max-w-md mx-auto mb-6 rounded-lg shadow-xl">
+        
+        <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden mb-8 transition-all duration-300 animate-fade-in">
+            <div class="p-6">
+                <h1 class="text-3xl md:text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-red-500">
+                    Tic-Tac-Toe Challenge
+                </h1>
+                
+                <div id="gameModeSelection" class="mb-8 animate-fade-in">
+                    <h2 class="text-xl font-semibold mb-4">Choose Game Mode:</h2>
+                    <div class="flex flex-col sm:flex-row justify-center gap-4">
+                        <button onclick="startGame('ai')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all hover:scale-105 flex items-center justify-center gap-2">
+                            <span>Play vs AI</span>
+                        </button>
+                        <button onclick="startGame('friend')" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-all hover:scale-105 flex items-center justify-center gap-2">
+                            <span>Play with Friend</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="playerSettings" class="hidden mb-8 animate-fade-in">
+                    <h2 class="text-xl font-semibold mb-4">Player Settings</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-700 p-4 rounded-lg">
+                            <label for="player1Name" class="block text-sm font-medium mb-2">Player 1 (X)</label>
+                            <input type="text" id="player1Name" placeholder="Enter name" class="w-full px-3 py-2 bg-gray-600 rounded-md text-white" value="Player 1">
+                        </div>
+                        <div class="bg-gray-700 p-4 rounded-lg hidden" id="player2Container">
+                            <label for="player2Name" class="block text-sm font-medium mb-2">Player 2 (O)</label>
+                            <input type="text" id="player2Name" placeholder="Enter name" class="w-full px-3 py-2 bg-gray-600 rounded-md text-white" value="Player 2">
+                        </div>
+                    </div>
+                    <button onclick="confirmSettings()" class="mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-all hover:scale-105">
+                        Start Game
+                    </button>
+                </div>
+                
+                <div id="gameContainer" class="hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <div id="player1Info" class="bg-gray-700 p-3 rounded-lg text-center">
+                            <div class="text-lg font-semibold"><span id="player1Display">Player 1 (X)</span></div>
+                        </div>
+                        <div id="currentTurn" class="text-xl font-bold text-blue-400 animate-pulse">X's Turn</div>
+                        <div id="player2Info" class="bg-gray-700 p-3 rounded-lg text-center">
+                            <div class="text-lg font-semibold"><span id="player2Display">Player 2 (O)</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-2 max-w-xs mx-auto mb-6">
+                        <div class="cell w-20 h-20 bg-gray-700 flex items-center justify-center text-4xl font-bold cursor-pointer rounded-lg" onclick="makeMove(0)"></div>
+                        <div class="cell w-20 h-20 bg-gray-700 flex items-center justify-center text-4xl font-bold cursor-pointer rounded-lg" onclick="makeMove(1)"></div>
+                        <div class="cell w-20 h-20 bg-gray-700 flex items-center justify-center text-4xl font-bold cursor-pointer rounded-lg" onclick="makeMove(2)"></div>
+                        <div class="cell w-20 h-20 bg-gray-700 flex items-center justify-center text-4xl font-bold cursor-pointer rounded-lg" onclick="makeMove(3)"></div>
+                        <div class="cell w-20 h-20 bg-gray-700 flex items-center justify-center text-4xl font-bold cursor-pointer rounded-lg" onclick="makeMove(4)"></div>
+                        <div class="cell w-20 h-20 bg-gray-700 flex items-center justify-center text-4xl font-bold cursor-pointer rounded-lg" onclick="makeMove(5)"></div>
+                        <div class="cell w-20 h-20 bg-gray-700 flex items-center justify-center text-4xl font-bold cursor-pointer rounded-lg" onclick="makeMove(6)"></div>
+                        <div class="cell w-20 h-20 bg-gray-700 flex items-center justify-center text-4xl font-bold cursor-pointer rounded-lg" onclick="makeMove(7)"></div>
+                        <div class="cell w-20 h-20 bg-gray-700 flex items-center justify-center text-4xl font-bold cursor-pointer rounded-lg" onclick="makeMove(8)"></div>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <div id="scores" class="text-lg">
+                            <span id="player1Score" class="text-blue-400">0</span> - 
+                            <span id="player2Score" class="text-red-400">0</span>
+                        </div>
+                        <button onclick="resetGame()" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-1 px-4 rounded-lg transition-all">
+                            Reset Game
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="gameOverModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+                    <div class="bg-gray-800 p-6 rounded-xl max-w-sm w-full mx-4 text-center animate-fade-in">
+                        <h2 id="gameResultText" class="text-2xl font-bold mb-4"></h2>
+                        <div class="flex flex-col space-y-3">
+                            <button onclick="playAgain()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-all">
+                                Play Again
+                            </button>
+                            <button onclick="returnToMenu()" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-all">
+                                Return to Menu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state variables
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let currentPlayer = 'X';
+        let gameMode = '';
+        let gameActive = false;
+        let scores = { X: 0, O: 0 };
+        let playerNames = { X: 'Player 1 (X)', O: 'Player 2 (O)' };
+        let winningCells = [];
+        
+        // DOM elements
+        const cells = document.querySelectorAll('.cell');
+        const gameModeSelection = document.getElementById('gameModeSelection');
+        const playerSettings = document.getElementById('playerSettings');
+        const player2Container = document.getElementById('player2Container');
+        const gameContainer = document.getElementById('gameContainer');
+        const currentTurnElement = document.getElementById('currentTurn');
+        const player1Display = document.getElementById('player1Display');
+        const player2Display = document.getElementById('player2Display');
+        const player1Score = document.getElementById('player1Score');
+        const player2Score = document.getElementById('player2Score');
+        const gameOverModal = document.getElementById('gameOverModal');
+        const gameResultText = document.getElementById('gameResultText');
+        
+        // Start game based on selected mode
+        function startGame(mode) {
+            gameMode = mode;
+            gameModeSelection.classList.add('hidden');
+            
+            // Show appropriate settings based on game mode
+            if (mode === 'friend') {
+                player2Container.classList.remove('hidden');
+            } else {
+                player2Container.classList.add('hidden');
+            }
+            
+            playerSettings.classList.remove('hidden');
+        }
+        
+        // Confirm player settings and start the game
+        function confirmSettings() {
+            playerNames.X = document.getElementById('player1Name').value.trim() || 'Player 1 (X)';
+            
+            if (gameMode === 'friend') {
+                playerNames.O = document.getElementById('player2Name').value.trim() || 'Player 2 (O)';
+            } else {
+                playerNames.O = 'AI (O)';
+            }
+            
+            playerSettings.classList.add('hidden');
+            initializeGame();
+        }
+        
+        // Initialize the game board and state
+        function initializeGame() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';
+            gameActive = true;
+            winningCells = [];
+            
+            // Update UI
+            player1Display.textContent = playerNames.X;
+            player2Display.textContent = playerNames.O;
+            player1Score.textContent = scores.X;
+            player2Score.textContent = scores.O;
+            updateCurrentTurnDisplay();
+            
+            // Clear the board
+            cells.forEach((cell, index) => {
+                cell.textContent = '';
+                cell.classList.remove('x-symbol', 'o-symbol', 'occupied', 'winning-cell');
+            });
+            
+            // Show game container
+            gameContainer.classList.remove('hidden');
+            
+            // If AI's turn (first move as O), make AI move
+            if (gameMode !== 'friend' && currentPlayer === 'O') {
+                setTimeout(makeAiMove, 500);
+            }
+        }
+        
+        // Handle player move
+        function makeMove(index) {
+            if (!gameActive || board[index] !== '' || (currentPlayer === 'O' && gameMode !== 'friend')) {
+                return;
+            }
+            
+            // Make the move
+            board[index] = currentPlayer;
+            const cell = cells[index];
+            cell.textContent = currentPlayer;
+            cell.classList.add(currentPlayer === 'X' ? 'x-symbol' : 'o-symbol', 'occupied');
+            
+            // Check for win or tie
+            checkGameResult();
+            
+            // If game is still active and it's AI's turn
+            if (gameActive && currentPlayer === 'O' && gameMode !== 'friend') {
+                setTimeout(makeAiMove, 500);
+            }
+        }
+        
+        // AI move logic
+        function makeAiMove() {
+            if (!gameActive || currentPlayer !== 'O') return;
+            
+            // Simple AI logic - random move, but you can make it smarter
+            let availableMoves = [];
+            board.forEach((cell, index) => {
+                if (cell === '') availableMoves.push(index);
+            });
+            
+            if (availableMoves.length > 0) {
+                // Try to win if possible
+                for (const move of availableMoves) {
+                    const newBoard = [...board];
+                    newBoard[move] = 'O';
+                    if (checkWinCondition(newBoard, 'O')) {
+                        return processAiMove(move);
+                    }
+                }
+                
+                // Block player from winning
+                for (const move of availableMoves) {
+                    const newBoard = [...board];
+                    newBoard[move] = 'X';
+                    if (checkWinCondition(newBoard, 'X')) {
+                        return processAiMove(move);
+                    }
+                }
+                
+                // Take center if available
+                if (availableMoves.includes(4)) {
+                    return processAiMove(4);
+                }
+                
+                // Take a corner if available
+                const corners = [0, 2, 6, 8];
+                const availableCorners = corners.filter(corner => availableMoves.includes(corner));
+                if (availableCorners.length > 0) {
+                    return processAiMove(availableCorners[Math.floor(Math.random() * availableCorners.length)]);
+                }
+                
+                // Random move if all else fails
+                const randomMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+                processAiMove(randomMove);
+            }
+        }
+        
+        function processAiMove(index) {
+            board[index] = 'O';
+            const cell = cells[index];
+            cell.textContent = 'O';
+            cell.classList.add('o-symbol', 'occupied');
+            
+            // Animate AI's move for better UX
+            cell.style.opacity = '0';
+            cell.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                cell.style.opacity = '1';
+                cell.style.transform = 'scale(1)';
+                checkGameResult();
+            }, 200);
+        }
+        
+        // Check if the game is won or tied
+        function checkGameResult() {
+            // Check for win
+            if (checkWinCondition(board, currentPlayer)) {
+                gameActive = false;
+                scores[currentPlayer]++;
+                if (currentPlayer === 'X') {
+                    player1Score.textContent = scores.X;
+                } else {
+                    player2Score.textContent = scores.O;
+                }
+                
+                // Highlight winning cells
+                winningCells.forEach(index => {
+                    cells[index].classList.add('winning-cell');
+                });
+                
+                // Show win message
+                setTimeout(() => {
+                    gameResultText.textContent = `${playerNames[currentPlayer]} Wins!`;
+                    gameOverModal.classList.remove('hidden');
+                }, 500);
+                return;
+            }
+            
+            // Check for tie
+            if (!board.includes('')) {
+                gameActive = false;
+                gameResultText.textContent = "It's a Tie!";
+                gameOverModal.classList.remove('hidden');
+                return;
+            }
+            
+            // Switch player
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            updateCurrentTurnDisplay();
+        }
+        
+        // Check win condition for a given board and player
+        function checkWinCondition(boardToCheck, player) {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+                [0, 4, 8], [2, 4, 6]             // diagonals
+            ];
+            
+            for (const pattern of winPatterns) {
+                if (
+                    boardToCheck[pattern[0]] === player &&
+                    boardToCheck[pattern[1]] === player &&
+                    boardToCheck[pattern[2]] === player
+                ) {
+                    winningCells = pattern;
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        // Update the current turn display
+        function updateCurrentTurnDisplay() {
+            currentTurnElement.textContent = `${playerNames[currentPlayer]}'s Turn`;
+            currentTurnElement.className = `text-xl font-bold ${currentPlayer === 'X' ? 'text-blue-400' : 'text-red-400'} animate-pulse`;
+        }
+        
+        // Reset the current game (same players)
+        function resetGame() {
+            initializeGame();
+        }
+        
+        // Play again after game over
+        function playAgain() {
+            gameOverModal.classList.add('hidden');
+            initializeGame();
+        }
+        
+        // Return to main menu
+        function returnToMenu() {
+            gameOverModal.classList.add('hidden');
+            gameContainer.classList.add('hidden');
+            gameModeSelection.classList.remove('hidden');
+            scores = { X: 0, O: 0 };
+        }
+    </script>
+</body>
+</html>
